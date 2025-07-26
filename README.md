@@ -10,10 +10,10 @@ Telegram bot pro:
 1. Vytvoř nový web service z GitHub repozitáře
 2. Build command: `pip install pip install pytelegrambotapi flask`
 3. Start command: `python main.py`
-4. Přidej ENV proměnnou `TELEGRAM_TOKEN`
+4. Přidej ENV proměnnou `8304347353:AAHRKFhNgqsSweIBYPgLhl7UDn7GcszllFw `
 
 ## Spuštění lokálně
 ```bash
-export TELEGRAM_TOKEN=tvuj_token
+export TELEGRAM_TOKEN=8304347353:AAHRKFhNgqsSweIBYPgLhl7UDn7GcszllFw
 python bot.py
 ```
