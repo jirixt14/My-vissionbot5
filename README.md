@@ -8,8 +8,8 @@ Telegram bot pro:
 
 ## Nasazení na Render
 1. Vytvoř nový web service z GitHub repozitáře
-2. Build command: `pip install -r requirements.txt`
-3. Start command: `python bot.py`
+2. Build command: `pip install pip install pytelegrambotapi flask`
+3. Start command: `python main.py`
 4. Přidej ENV proměnnou `TELEGRAM_TOKEN`
 
 ## Spuštění lokálně
