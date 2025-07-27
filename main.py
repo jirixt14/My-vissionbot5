@@ -1,44 +1,57 @@
-from flask import Flask, request
-import telebot
+import logging
 import os
+from flask import Flask, request
+import telegram
+from telegram import Update
+from telegram.ext import Dispatcher, CommandHandler, CallbackContext
 
-TOKEN = "8304347353:AAHRKFhNgqsSweIBYPgLhl7UDn7GcszllFw"
-bot = telebot.TeleBot(TOKEN, threaded=False)
+TOKEN = os.getenv("BOT_TOKEN", "8304347353:AAHRKFhNgqsSweIBYPgLhl7UDn7GcszllFw")
+bot = telegram.Bot(token=TOKEN)
+
 app = Flask(__name__)
 
-# Základní testovací route (Render vyžaduje GET /)
-@app.route('/', methods=['GET'])
-def index():
-    return "MyVisionBot běží správně."
+# Nastavení loggeru
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# Route pro příjem zpráv od Telegramu (webhook)
-@app.route('/' + TOKEN, methods=['POST'])
+# Základní příkazy
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("👋 Ahoj! Já jsem MyVisionBot.\n\n📌 Dostupné příkazy:\n\n"
+                              "🎁 /bonusy – Aktuální casino bonusy\n"
+                              "🛒 /produkty – Dropshipping produkty\n"
+                              "🔊 /testhlas – Test hlasového výstupu")
+
+def bonusy(update: Update, context: CallbackContext):
+    update.message.reply_text("🎁 Nejnovější bonus: Získej 200 free spinů – více na https://t.me/casinoczskbonusy")
+
+def produkty(update: Update, context: CallbackContext):
+    update.message.reply_text("🛒 Dnešní doporučený produkt:\nXiaomi Smart Band 7 – jen 799 Kč!\nVíce info: napiš /start")
+
+def testhlas(update: Update, context: CallbackContext):
+    update.message.reply_text("🔊 Připravuji hlasové upozornění… (zatím jen textově)")
+    # Zde později přidáme přehrání hlasu
+
+# Nastavení webhooku
+@app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
-    json_str = request.get_data().decode('utf-8')
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return 'OK', 200
+    update = telegram.Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return 'ok'
 
-# Reakce na příkaz /start
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.reply_to(message, "👋 Ahoj! Já jsem MyVisionBot a jsem připraven pomáhat. Napiš /bonusy nebo /produkty.")
+# Kontrolní route
+@app.route('/')
+def index():
+    return '✅ MyVisionBot běží!'
 
-# Reakce na příkaz /bonusy
-@bot.message_handler(commands=['bonusy'])
-def bonusy(message):
-    bot.send_message(message.chat.id, "🎁 Právě kontroluji nejnovější bonusy... Sleduj kanál: https://t.me/casinoczskbonusy")
+# Připojení handlerů
+dispatcher = Dispatcher(bot, None, workers=0)
+dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('bonusy', bonusy))
+dispatcher.add_handler(CommandHandler('produkty', produkty))
+dispatcher.add_handler(CommandHandler('testhlas', testhlas))
 
-# Reakce na příkaz /produkty
-@bot.message_handler(commands=['produkty'])
-def produkty(message):
-    bot.send_message(message.chat.id, "🛒 Tady je aktuální nabídka dropshipping produktů (zatím test).")
-
-# Reakce na příkaz /testhlas
-@bot.message_handler(commands=['testhlas'])
-def testhlas(message):
-    bot.send_message(message.chat.id, "🔊 Ahoj! Právě jsem našel nový bonus – zkontroluj svůj Telegram kanál a vydělej!")
-
-# Spuštění aplikace
+# Nastavení webhooku při startu
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    URL = "https://my-vissionbot5.onrender.com"
+    bot.delete_webhook()
+    bot.set_webhook(url=f"{URL}/{TOKEN}")
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
